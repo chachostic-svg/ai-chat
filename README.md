@@ -18,6 +18,14 @@ npm run dev:all
 
 ## Продакшен
 
+### Vercel (рекомендуется)
+
+1. Импортируйте репозиторий на [vercel.com](https://vercel.com) или CLI: `npx vercel`
+2. В **Environment Variables** добавьте `GEMINI_API_KEY` (Production)
+3. Deploy — статика из `dist/`, API: `/api/chat`, `/api/health`
+
+### Свой сервер (Node)
+
 ```bash
 npm run build
 npm start
