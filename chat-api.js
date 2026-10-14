@@ -20,22 +20,29 @@ export async function requestAgentReply(messages, latestUserText) {
     throw new Error('Пустое сообщение');
   }
 
-  const res = await fetch(CHAT_API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      messages: payload.length ? payload : [{ role: 'user', text: lastUser }],
-      message: lastUser,
-      text: lastUser,
-    }),
-  });
+  let res;
+  try {
+    res = await fetch(CHAT_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: payload.length ? payload : [{ role: 'user', text: lastUser }],
+        message: lastUser,
+        text: lastUser,
+      }),
+    });
+  } catch {
+    throw new Error(
+      'Проверьте, что запущен backend (npm run dev) и в файле .env задан GEMINI_API_KEY.'
+    );
+  }
 
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
     if (res.status === 503 && data.code === 'NO_API_KEY') {
       throw new Error(
-        'Сервер не настроен: добавьте GEMINI_API_KEY в .env и перезапустите npm run dev:all'
+        'Сервер не настроен: добавьте GEMINI_API_KEY в файл .env в корне проекта и перезапустите npm run dev'
       );
     }
     const msg = data.error || `Ошибка сервера (${res.status})`;

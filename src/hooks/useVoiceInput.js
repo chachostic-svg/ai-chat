@@ -6,16 +6,29 @@ function getRecognitionCtor() {
 }
 
 /**
- * @param {{ onResult: (text: string) => void; lang?: string }} options
+ * @param {{
+ *   onInterim?: (text: string) => void;
+ *   onFinal?: (text: string) => void;
+ *   lang?: string;
+ * }} options
  */
-export function useVoiceInput({ onResult, lang = 'ru-RU' }) {
+export function useVoiceInput({ onInterim, onFinal, lang = 'ru-RU' }) {
   const [supported, setSupported] = useState(false);
   const [listening, setListening] = useState(false);
   const [error, setError] = useState('');
   const recognitionRef = useRef(null);
+  const onInterimRef = useRef(onInterim);
+  const onFinalRef = useRef(onFinal);
 
   useEffect(() => {
-    setSupported(Boolean(getRecognitionCtor()));
+    onInterimRef.current = onInterim;
+    onFinalRef.current = onFinal;
+  }, [onInterim, onFinal]);
+
+  useEffect(() => {
+    const ctor = getRecognitionCtor();
+    const secure = typeof window !== 'undefined' && window.isSecureContext;
+    setSupported(Boolean(ctor && secure));
   }, []);
 
   const stop = useCallback(() => {
@@ -26,8 +39,14 @@ export function useVoiceInput({ onResult, lang = 'ru-RU' }) {
   const start = useCallback(() => {
     setError('');
     const Ctor = getRecognitionCtor();
+
+    if (!window.isSecureContext) {
+      setError('Голосовой ввод работает только по HTTPS (или на localhost)');
+      return;
+    }
+
     if (!Ctor) {
-      setError('Голосовой ввод не поддерживается в этом браузере');
+      setError('Используйте Chrome или Edge — в них есть распознавание речи');
       return;
     }
 
@@ -45,18 +64,24 @@ export function useVoiceInput({ onResult, lang = 'ru-RU' }) {
     recognition.onstart = () => setListening(true);
 
     recognition.onresult = (event) => {
-      let transcript = '';
+      let interim = '';
+      let finalText = '';
       for (let i = event.resultIndex; i < event.results.length; i += 1) {
-        transcript += event.results[i][0].transcript;
+        const part = event.results[i][0]?.transcript ?? '';
+        if (event.results[i].isFinal) finalText += part;
+        else interim += part;
       }
-      if (transcript.trim()) {
-        onResult(transcript.trim());
-      }
+      if (interim.trim()) onInterimRef.current?.(interim.trim());
+      if (finalText.trim()) onFinalRef.current?.(finalText.trim());
     };
 
     recognition.onerror = (event) => {
       const code = event.error;
-      if (code === 'aborted' || code === 'no-speech') return;
+      if (code === 'aborted') return;
+      if (code === 'no-speech') {
+        setError('Речь не распознана. Попробуйте ещё раз');
+        return;
+      }
       setError(
         code === 'not-allowed'
           ? 'Разрешите доступ к микрофону в браузере'
@@ -74,7 +99,7 @@ export function useVoiceInput({ onResult, lang = 'ru-RU' }) {
       setError('Микрофон занят или недоступен');
       setListening(false);
     }
-  }, [lang, listening, onResult, stop]);
+  }, [lang, listening, stop]);
 
   useEffect(() => () => recognitionRef.current?.abort(), []);
 

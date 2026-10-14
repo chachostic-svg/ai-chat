@@ -38,7 +38,7 @@ app.get('/api/health', (_req, res) => {
     apiVersion: API_VERSION,
     gemini: geminiConfigured,
     geminiConfigured,
-    model: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
+    model: process.env.GEMINI_MODEL || 'gemini-flash-lite-latest',
     envFile: envPath,
   });
 });
@@ -54,7 +54,9 @@ app.post('/api/chat', async (req, res) => {
         ? 503
         : code === 'INVALID_BODY' || err.message?.includes('обязателен') || err.message?.includes('Последнее')
           ? 400
-          : 502;
+          : code === 'GEMINI_OVERLOADED' || code === 'GEMINI_ALL_FAILED'
+            ? 503
+            : 502;
     res.status(status).json({
       error: err.message || 'Не удалось получить ответ',
       code,

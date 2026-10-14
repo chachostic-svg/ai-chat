@@ -9,6 +9,6 @@ export default function handler(_req, res) {
     platform: 'vercel',
     gemini: geminiConfigured,
     geminiConfigured,
-    model: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
+    model: process.env.GEMINI_MODEL || 'gemini-flash-lite-latest',
   });
 }

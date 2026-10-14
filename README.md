@@ -8,13 +8,12 @@ Frontend виджета онлайн-консультанта на **JavaScript 
 npm install
 cp .env.example .env
 # В .env укажите GEMINI_API_KEY — https://aistudio.google.com/apikey
-npm run dev:all
+npm run dev
 ```
 
-Откроется сайт на `http://localhost:5173`, API — `http://localhost:3001`. Vite проксирует `/api` на backend.
+Откроется сайт на `http://localhost:5173`. Запросы к `/api/chat` обрабатывает Vite (ключ из `.env`).
 
-Только frontend (без ИИ): `npm run dev`  
-Только backend: `npm run server`
+Отдельный Express-сервер: `npm run server` или `npm run dev:server` (`http://localhost:3001`).
 
 ## Продакшен
 

@@ -26,7 +26,7 @@ export function ApiStatus() {
           setState({
             loading: false,
             ok: false,
-            detail: 'Backend не отвечает. Запустите: npm run dev:all',
+            detail: 'Backend не отвечает. Запустите: npm run dev (в .env должен быть GEMINI_API_KEY).',
           });
         }
       }

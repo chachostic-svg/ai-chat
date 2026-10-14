@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:server": "npm run server",
     "free-port": "node scripts/free-port.js 3001",
     "server": "node scripts/free-port.js 3001 && node --watch server/index.js",
     "dev:all": "node scripts/free-port.js 3001 && concurrently -n api,web -c green,cyan \"npm run server\" \"npm run dev\"",

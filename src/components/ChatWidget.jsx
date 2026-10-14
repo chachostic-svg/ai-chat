@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   MOCK_AGENT,
   MOCK_QUICK_REPLIES,
@@ -7,6 +7,8 @@ import {
 } from '../../mock-data.js';
 import { requestAgentReply } from '../../chat-api.js';
 import { MessageBubble } from './MessageBubble.jsx';
+import { VoiceIcon } from './VoiceIcon.jsx';
+import { VoiceWaveform } from './VoiceWaveform.jsx';
 import { useVoiceInput } from '../hooks/useVoiceInput.js';
 
 function formatTime(date = new Date()) {
@@ -36,7 +38,7 @@ export function ChatWidget() {
   }, [open]);
 
   const sendText = useCallback(
-    async (text) => {
+    async (text, options = {}) => {
       const trimmed = text.trim();
       if (!trimmed || typing) return;
 
@@ -45,6 +47,7 @@ export function ChatWidget() {
         role: 'user',
         text: trimmed,
         time: formatTime(),
+        viaVoice: Boolean(options.viaVoice),
       };
 
       const withUser = [...messages, userMsg];
@@ -93,14 +96,38 @@ export function ChatWidget() {
     void sendText(input);
   };
 
-  const onVoiceResult = useCallback((text) => {
-    setInput((prev) => {
-      const merged = prev.trim() ? `${prev.trim()} ${text}` : text;
-      return merged.slice(0, 2000);
-    });
+  const voiceBaseRef = useRef('');
+
+  const onVoiceInterim = useCallback((text) => {
+    const base = voiceBaseRef.current.trim();
+    const merged = base ? `${base} ${text}` : text;
+    setInput(merged.slice(0, 2000));
   }, []);
 
-  const voice = useVoiceInput({ onResult: onVoiceResult, lang: 'ru-RU' });
+  const onVoiceFinal = useCallback(
+    (text) => {
+      const base = voiceBaseRef.current.trim();
+      voiceBaseRef.current = '';
+      const merged = (base ? `${base} ${text}` : text).trim();
+      if (!merged) return;
+      setInput('');
+      void sendText(merged, { viaVoice: true });
+    },
+    [sendText]
+  );
+
+  const voice = useVoiceInput({
+    onInterim: onVoiceInterim,
+    onFinal: onVoiceFinal,
+    lang: 'ru-RU',
+  });
+
+  const handleVoiceClick = useCallback(() => {
+    if (!voice.listening) {
+      voiceBaseRef.current = input;
+    }
+    voice.start();
+  }, [input, voice]);
 
   const panelId = useMemo(() => 'chat-widget-panel', []);
 
@@ -140,7 +167,12 @@ export function ChatWidget() {
               key={m.id}
               className={`chat-widget__row chat-widget__row--${m.role === 'user' ? 'user' : 'agent'}`}
             >
-              <MessageBubble role={m.role} text={m.text} time={m.time} />
+              <MessageBubble
+                role={m.role}
+                text={m.text}
+                time={m.time}
+                viaVoice={m.viaVoice}
+              />
             </article>
           ))}
           {typing && (
@@ -160,20 +192,29 @@ export function ChatWidget() {
           ))}
         </div>
 
+        {voice.listening && (
+          <div className="chat-widget__voice-panel" role="status">
+            <VoiceWaveform active />
+            <span className="chat-widget__voice-panel-text">Идёт запись… говорите</span>
+          </div>
+        )}
+
         <form className="chat-widget__compose" onSubmit={onSubmit}>
-          {voice.supported && (
-            <button
-              type="button"
-              className={`chat-widget__mic${voice.listening ? ' chat-widget__mic--active' : ''}`}
-              onClick={voice.start}
-              disabled={typing}
-              aria-pressed={voice.listening}
-              aria-label={voice.listening ? 'Остановить запись' : 'Голосовой ввод'}
-              title={voice.listening ? 'Идёт запись…' : 'Голосовой ввод'}
-            >
-              🎤
-            </button>
-          )}
+          <button
+            type="button"
+            className={`chat-widget__mic${voice.listening ? ' chat-widget__mic--active' : ''}${!voice.supported ? ' chat-widget__mic--unsupported' : ''}`}
+            onClick={handleVoiceClick}
+            disabled={typing}
+            aria-pressed={voice.listening}
+            aria-label={voice.listening ? 'Остановить запись' : 'Голосовой ввод'}
+            title={
+              voice.listening
+                ? 'Нажмите, чтобы остановить'
+                : 'Скажите сообщение — оно отправится автоматически'
+            }
+          >
+            <VoiceIcon className="chat-widget__mic-icon" />
+          </button>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}

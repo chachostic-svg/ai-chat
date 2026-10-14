@@ -27,7 +27,9 @@ export default async function handler(req, res) {
         ? 503
         : code === 'INVALID_BODY' || err.message?.includes('Пользователя')
           ? 400
-          : 502;
+          : code === 'GEMINI_OVERLOADED' || code === 'GEMINI_ALL_FAILED'
+            ? 503
+            : 502;
     return res.status(status).json({
       error: err.message || 'Не удалось получить ответ',
       code,
