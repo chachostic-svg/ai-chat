@@ -128,6 +128,44 @@ body {
   font-size: 0.95rem;
 }
 
+.demo__api-status {
+  margin-top: 24px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.demo__api-status--loading {
+  background: var(--demo-card);
+  border: 1px solid var(--jivo-border);
+  color: var(--jivo-text-muted);
+}
+
+.demo__api-status--ok {
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+  color: #065f46;
+}
+
+.demo__api-status--bad {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+}
+
+[data-theme='dark'] .demo__api-status--ok {
+  background: #052e16;
+  border-color: #059669;
+  color: #a7f3d0;
+}
+
+[data-theme='dark'] .demo__api-status--bad {
+  background: #450a0a;
+  border-color: #b91c1c;
+  color: #fecaca;
+}
+
 .demo__hint {
   margin-top: 32px;
   padding: 16px 20px;
@@ -624,6 +662,11 @@ body {
 .jivo-compose__input:focus {
   border-color: var(--jivo-accent);
   box-shadow: 0 0 0 3px var(--jivo-accent-glow);
+}
+
+.jivo-compose__input:disabled {
+  opacity: 0.65;
+  cursor: wait;
 }
 
 .jivo-compose__send {

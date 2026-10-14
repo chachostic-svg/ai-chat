@@ -7,6 +7,7 @@ import {
 } from './mock-data.js';
 import { agentAvatarHtml } from './agent-avatar.js';
 import { createChatBackground3d } from './chat-background-3d.js';
+import { requestAgentReply } from './chat-api.js';
 
 const AGENT_AVATAR = agentAvatarHtml();
 
@@ -115,13 +116,21 @@ export function initChatWidget(root = document.body) {
     scrollMessages();
   }
 
-  function replyAsAgent(userText) {
+  async function replyAsAgent() {
     showTyping(true);
-    const delay = 800 + Math.min(userText.length * 20, 1200);
-    setTimeout(() => {
+    els.input.disabled = true;
+    try {
+      const lastUser = [...state.messages].reverse().find((m) => m.role === 'user');
+      const reply = await requestAgentReply(state.messages, lastUser?.text);
+      addMessage('agent', reply);
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : 'ошибка сети';
+      addMessage('agent', `Извините, сейчас не получается ответить: ${reason}`);
+    } finally {
       showTyping(false);
-      addMessage('agent', pickReply());
-    }, delay);
+      els.input.disabled = false;
+      if (state.open) els.input.focus();
+    }
   }
 
   function sendUserText(text) {
@@ -129,7 +138,7 @@ export function initChatWidget(root = document.body) {
     if (!trimmed || state.typing) return;
     addMessage('user', trimmed);
     els.input.value = '';
-    replyAsAgent(trimmed);
+    void replyAsAgent();
   }
 
   els.launcher.addEventListener('click', () => {

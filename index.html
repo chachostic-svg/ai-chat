@@ -3,8 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ИИ-чат — виджет как Jivo</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <title>ИИ-чат — АвтоСнаб</title>
     <script>
       (function () {
         var t = localStorage.getItem('ai-chat-theme');
@@ -13,65 +12,7 @@
     </script>
   </head>
   <body>
-    <main class="demo">
-      <div class="demo__top">
-        <div>
-          <h1 class="demo__title">ТехноДом</h1>
-          <p class="demo__subtitle">Демо-страница с виджетом онлайн-консультанта</p>
-        </div>
-        <button type="button" class="theme-toggle" id="theme-toggle" aria-pressed="false">
-          Тема: светлая
-        </button>
-      </div>
-
-      <div class="demo__grid">
-        <article class="demo__card">
-          <h3>Быстрая доставка</h3>
-          <p>Заказы до 18:00 отправляем в тот же день по Москве и области.</p>
-        </article>
-        <article class="demo__card">
-          <h3>Гарантия 12 месяцев</h3>
-          <p>Официальная гарантия производителя и сервисные центры по всей России.</p>
-        </article>
-        <article class="demo__card">
-          <h3>Поддержка 24/7</h3>
-          <p>ИИ-ассистент ответит на типовые вопросы; сложные случаи передаёт оператору.</p>
-        </article>
-      </div>
-
-      <p class="demo__hint">
-        Нажмите зелёную кнопку в правом нижнем углу — откроется чат в стиле Jivo: шапка с оператором,
-        история сообщений, быстрые ответы и имитация ответа агента.
-      </p>
-    </main>
-
-    <script type="module">
-      import { initChatWidget } from '/chat-widget.js';
-
-      initChatWidget();
-
-      const toggle = document.getElementById('theme-toggle');
-      const root = document.documentElement;
-
-      function syncToggleLabel() {
-        const dark = root.getAttribute('data-theme') === 'dark';
-        toggle.textContent = dark ? 'Тема: тёмная' : 'Тема: светлая';
-        toggle.setAttribute('aria-pressed', String(dark));
-      }
-
-      toggle.addEventListener('click', () => {
-        const dark = root.getAttribute('data-theme') === 'dark';
-        if (dark) {
-          root.removeAttribute('data-theme');
-          localStorage.setItem('ai-chat-theme', 'light');
-        } else {
-          root.setAttribute('data-theme', 'dark');
-          localStorage.setItem('ai-chat-theme', 'dark');
-        }
-        syncToggleLabel();
-      });
-
-      syncToggleLabel();
-    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
